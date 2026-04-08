@@ -26,22 +26,45 @@ return {
   },
   config = function()
     local opencode_cmd = [[zsh -ic 'opencode --port']]
+    local terminal = require 'opencode.terminal'
+
+    local function terminal_opts()
+      return {
+        split = 'right',
+        width = math.max(40, math.floor(vim.o.columns * 0.4)),
+      }
+    end
+
+    local function has_opencode_window()
+      for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+        if vim.api.nvim_win_is_valid(win) then
+          local buf = vim.api.nvim_win_get_buf(win)
+          local ft = vim.bo[buf].filetype
+          local bt = vim.bo[buf].buftype
+          if ft == 'opencode' then return true end
+          if bt == 'terminal' then
+            local buf_name = string.lower(vim.api.nvim_buf_get_name(buf))
+            if buf_name:find('opencode', 1, true) then return true end
+          end
+        end
+      end
+
+      return false
+    end
 
     ---@type opencode.Opts
     vim.g.opencode_opts = {
       server = {
         start = function()
-          require('opencode.terminal').open(opencode_cmd, {
-            split = 'right',
-            width = math.max(40, math.floor(vim.o.columns * 0.4)),
-          })
+          terminal.open(opencode_cmd, terminal_opts())
         end,
-        stop = function() require('opencode.terminal').close() end,
+        stop = function() terminal.close() end,
         toggle = function()
-          require('opencode.terminal').toggle(opencode_cmd, {
-            split = 'right',
-            width = math.max(40, math.floor(vim.o.columns * 0.4)),
-          })
+          if has_opencode_window() then
+            terminal.close()
+            return
+          end
+          terminal.open(opencode_cmd, terminal_opts())
         end,
       },
     }

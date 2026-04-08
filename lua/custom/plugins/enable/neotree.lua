@@ -1,6 +1,12 @@
 return {
   {
     'nvim-neo-tree/neo-tree.nvim',
+    version = '*',
+    dependencies = {
+      'nvim-lua/plenary.nvim',
+      'nvim-tree/nvim-web-devicons',
+      'MunifTanjim/nui.nvim',
+    },
     opts = function(_, opts)
       opts.enable_git_status = true
 
